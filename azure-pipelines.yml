@@ -15,3 +15,8 @@ steps:
     targetType: 'inline'
     script: 'npm install'
     workingDirectory: './src/store-front/'
+
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: 'dependency-check.sh --project store-front --scan ./src/store-front -f ALL'
