@@ -20,3 +20,15 @@ steps:
   inputs:
     targetType: 'inline'
     script: 'dependency-check.sh --project store-front --scan ./src/store-front -f HTML --nvdApiKey aea87987-488a-4f7d-a151-41c3b2c1f92d'
+
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(System.DefaultWorkingDirectory)'
+    Contents: '**/.html'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'owasp'
+    publishLocation: 'Container'
