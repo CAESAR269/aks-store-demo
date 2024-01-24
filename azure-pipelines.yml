@@ -23,8 +23,8 @@ steps:
 
 - task: CopyFiles@2
   inputs:
-    SourceFolder: '/home/tsar/myagent/_work/2/s/./'
-    Contents: '**/*.html'
+    SourceFolder: '$(System.DefaultWorkingDirectory)'
+    Contents: '**/*dependency-check-report.html'
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
 - task: PublishBuildArtifacts@1
