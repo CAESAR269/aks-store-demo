@@ -23,7 +23,7 @@ steps:
 
 - task: CopyFiles@2
   inputs:
-    SourceFolder: '$(System.DefaultWorkingDirectory)'
+    SourceFolder: '/home/tsar/myagent/_work/2/s/./'
     Contents: '**/.html'
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
