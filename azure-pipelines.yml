@@ -19,4 +19,4 @@ steps:
 - task: Bash@3
   inputs:
     targetType: 'inline'
-    script: 'dependency-check.sh --project store-front --scan ./src/store-front -f ALL'
+    script: 'dependency-check.sh --project store-front --scan ./src/store-front -f html --nvdApiKey aea87987-488a-4f7d-a151-41c3b2c1f92d'
