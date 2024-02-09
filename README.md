@@ -1,10 +1,42 @@
+---
+page_type: sample
+languages:
+- azdeveloper
+- go
+- javascript
+- rust
+- nodejs
+- python
+- bicep
+- terraform
+- dockerfile
+products:
+- azure
+- azure-kubernetes-service
+- azure-openai
+- azure-cosmos-db
+- azure-container-registry
+- azure-service-bus
+- azure-monitor
+- azure-log-analytics
+- azure-managed-grafana
+- azure-key-vault
+urlFragment: aks-store-demo
+name: AKS Store Demo
+description: This sample demo app consists of a group of containerized microservices that can be easily deployed into an Azure Kubernetes Service (AKS) cluster. 
+---
+<!-- YAML front-matter schema: https://review.learn.microsoft.com/en-us/help/contribute/samples/process/onboarding?branch=main#supported-metadata-fields-for-readmemd -->
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=648726487)
+
 # AKS Store Demo
 
 This sample demo app consists of a group of containerized microservices that can be easily deployed into an Azure Kubernetes Service (AKS) cluster. This is meant to show a realistic scenario using a polyglot architecture, event-driven design, and common open source back-end services (eg - RabbitMQ, MongoDB). The application also leverages OpenAI's GPT-3 models to generate product descriptions. This can be done using either [Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/overview) or [OpenAI](https://openai.com/).
 
 This application is inspired by another demo app called [Red Dog](https://github.com/Azure/reddog-code).
 
-> Note: This is not meant to be an example of perfect code to be used in production, but more about showing a realistic application running in AKS. 
+> [!NOTE]
+> This is not meant to be an example of perfect code to be used in production, but more about showing a realistic application running in AKS. 
 
 <!-- 
 To walk through a quick deployment of this application, see the [AKS Quickstart](https://learn.microsoft.com/azure/aks/learn/quick-kubernetes-deploy-cli).
@@ -34,9 +66,10 @@ The application has the following services:
 
 ## Run the app on Azure Kubernetes Service (AKS)
 
-To learn how to depoy this app on AKS, see [Quickstart: Deploy an Azure Kubernetes Service (AKS) cluster using Azure CLI](https://learn.microsoft.com/azure/aks/learn/quick-kubernetes-deploy-cli).
+To learn how to deploy this app on AKS, see [Quickstart: Deploy an Azure Kubernetes Service (AKS) cluster using Azure CLI](https://learn.microsoft.com/azure/aks/learn/quick-kubernetes-deploy-cli).
 
-> Note: The above article shows a simplified version of the store app with some services removed. For the full application, you can use the `aks-store-all-in-one.yaml` file in this repo.
+> [!NOTE]
+> The above article shows a simplified version of the store app with some services removed. For the full application, you can use the `aks-store-all-in-one.yaml` file in this repo.
 
 ## Run on any Kubernetes
 
@@ -55,7 +88,8 @@ kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/aks-store-demo/
 
 The application is designed to be [run in an AKS cluster](#run-the-app-on-aks), but can also be run locally using Docker Compose.
 
-> **IMPORTANT**: You must have [Docker Desktop](https://www.docker.com/products/docker-desktop) installed to run this app locally.
+> [!TIP]
+> You must have [Docker Desktop](https://www.docker.com/products/docker-desktop) installed to run this app locally. If you do not have it installed locally, you can try opening this repo in a [GitHub Codespace instead](#run-the-app-with-github-codespaces)
 
 To run this app locally:
 
@@ -66,12 +100,12 @@ git clone https://github.com/Azure-Samples/aks-store-demo.git
 cd aks-store-demo
 ```
 
-Configure your Azure OpenAI or OpenAI API keys in [`docker-compose.yml`](./docker-compose.yml) using the environment variables in the `aiservice` section:
+Configure your Azure OpenAI or OpenAI API keys in [`docker-compose.yml`](./docker-compose.yml) using the environment variables in the `ai-service` section:
 
 ```yaml
-  aiservice:
+  ai-service:
     build: src/ai-service
-    container_name: 'aiservice'
+    container_name: 'ai-service'
     ...
     environment:
       - USE_AZURE_OPENAI=True # set to False if you are not using Azure OpenAI
@@ -82,12 +116,12 @@ Configure your Azure OpenAI or OpenAI API keys in [`docker-compose.yml`](./docke
     ...
 ```
 
-Alternatively, if you do not have access to Azure OpenAI or OpenAI API keys, you can run the app without the `ai-service` by commenting out the `aiservice` section in [`docker-compose.yml`](./docker-compose.yml). For example:
+Alternatively, if you do not have access to Azure OpenAI or OpenAI API keys, you can run the app without the `ai-service` by commenting out the `ai-service` section in [`docker-compose.yml`](./docker-compose.yml). For example:
 
 ```yaml
-#  aiservice:
+#  ai-service:
 #    build: src/ai-service
-#    container_name: 'aiservice'
+#    container_name: 'ai-service'
 ...
 #    networks:
 #      - backend_services
@@ -119,23 +153,46 @@ azd auth login
 az login
 ```
 
+> Note: This project is configured to be deployed with Terraform by default. If you want to deploy using the bicep template, please rename the `azure-bicep.yaml` file to `azure.yaml`.
+
 Deploy the app with a single command.
+> [!WARNING]
+> Before you run the `azd up` command, make sure that you have the "Owner" role on the subscription you are deploying to. This is because the Terraform templates will create Azure role based access control (RBAC) assignments. Otherwise, the deployment will fail.
+
+The `makeline-service` supports both MongoDB and SQL API for accessing data in Azure CosmosDB. The default API is `MongoDB`, but you can use SQL API. To use the SQL API for Azure CosmosDB, you must provision the service using the `GlobalDocumentDB` account kind. You can set the Azure CosmosDB account kind by running the following command prior to running `azd up`:
+
+```bash
+azd env set AZURE_COSMOSDB_ACCOUNT_KIND GlobalDocumentDB
+```
+
+By default, all application containers will be sourced from the [GitHub Container Registry](https://github.com/orgs/Azure-Samples/packages?repo_name=aks-store-demo). If you want to deploy apps from an Azure Container registry instead, you can do so by setting the following environment variable.
+
+```bash
+azd env set DEPLOY_AZURE_CONTAINER_REGISTRY true
+```
+
+This will instruct the Terraform templates to provision an Azure Container Registry and enable authentication from the AKS cluster.
+
+When you choose to deploy containers from Azure Container Registry, you will have the option to import containers from GitHub Container Registry using the `az acr import` command or build containers from source using the `az acr build` command. 
+
+To build containers from source, run the following command. 
+
+```bash
+azd env set BUILD_CONTAINERS true
+```
+
+Provision and deploy the app with a single command.
 
 ```bash
 azd up
 ```
-
-> Note: When selecting an Azure region, make sure to choose one that supports all the services used in this app including Azure OpenAI, Azure Kubernetes Service, Azure Service Bus, and Azure Cosmos DB.
+> [!WARNING]
+> When selecting an Azure region, make sure to choose one that supports all the services used in this app including Azure OpenAI, Azure Kubernetes Service, Azure Service Bus, Azure Cosmos DB, Azure Log Analytics Workspace, Azure Monitor workspace, and Azure Managed Grafana.
 
 Once the deployment is complete, you can verify all the services are running and the app is working by following these steps:
 
 - In the Azure portal, navigate to your Azure Service Bus resource and use Azure Service Bus explorer to check for order messages
 - In the Azure portal, navigate to your Azure Cosmos DB resource and use the database explorer to check for order records
-- Port-forward the store-admin service (using the command below) then open http://localhost:8081 in your browser and ensure you can add product descriptions using the AI service
-
-  ```bash
-  kubectl port-forward svc/store-admin 8081:80
-  ```
 
 ## Additional Resources
 
